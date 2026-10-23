@@ -51,6 +51,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Toolbox") {
+                    Label("Toolbox", systemImage: "wrench.and.screwdriver")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -85,6 +88,8 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "Toolbox":
+                    ToolboxSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -159,7 +164,12 @@ struct GeneralSettings: View {
                     Text("Show menu bar icon")
                 }
                 .tint(.effectiveAccent)
-                LaunchAtLogin.Toggle("Launch at login")
+                Toggle(
+                    "Launch at login",
+                    isOn: Binding(
+                        get: { LaunchAtLogin.isEnabled },
+                        set: { LaunchAtLogin.isEnabled = $0 }
+                    ))
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     Text("Show on all displays")
                 }
@@ -1719,6 +1729,86 @@ struct AccentCircleButton: View {
         }
         .buttonStyle(.plain)
         .help(isSystemDefault ? "Use your macOS system accent color" : "")
+    }
+}
+
+struct ToolboxSettings: View {
+    @Default(.toolboxRegionShortcutEnabled) var regionShortcutEnabled
+    @Default(.toolboxSelectionTranslateEnabled) var selectionTranslateEnabled
+    @Default(.clipboardHistoryEnabled) var clipboardHistoryEnabled
+    @Default(.clipboardHistoryLimit) var clipboardHistoryLimit
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .toolboxRegionShortcutEnabled) {
+                    Text("Enable region screenshot shortcut")
+                }
+                KeyboardShortcuts.Recorder("Region screenshot:", name: .regionScreenshot)
+                    .disabled(!regionShortcutEnabled)
+            } header: {
+                Text("Screenshot")
+            } footer: {
+                Text(
+                    "Screenshots open in the annotation editor, where you can mark up, copy text with OCR, translate, or pin the shot on top of all windows."
+                )
+                .multilineTextAlignment(.trailing)
+                .foregroundStyle(.secondary)
+                .font(.caption)
+            }
+
+            Section {
+                Defaults.Toggle(key: .toolboxSelectionTranslateEnabled) {
+                    Text("Enable selection translate shortcut")
+                }
+                KeyboardShortcuts.Recorder("Selection translate:", name: .selectionTranslate)
+                    .disabled(!selectionTranslateEnabled)
+            } header: {
+                Text("Translation")
+            } footer: {
+                Text(
+                    "Uses Apple's on-device translation (macOS 15 or later). Select text in any app and press the shortcut to translate it."
+                )
+                .multilineTextAlignment(.trailing)
+                .foregroundStyle(.secondary)
+                .font(.caption)
+            }
+
+            Section {
+                Defaults.Toggle(key: .clipboardHistoryEnabled) {
+                    Text("Record clipboard history")
+                }
+                .onChange(of: clipboardHistoryEnabled) {
+                    if clipboardHistoryEnabled {
+                        ClipboardManager.shared.start()
+                    } else {
+                        ClipboardManager.shared.stop()
+                    }
+                }
+                Stepper(value: $clipboardHistoryLimit, in: 50...500, step: 50) {
+                    HStack {
+                        Text("History limit")
+                        Spacer()
+                        Text("\(clipboardHistoryLimit)")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .disabled(!clipboardHistoryEnabled)
+                KeyboardShortcuts.Recorder("Clipboard panel:", name: .clipboardHistoryPanel)
+                    .disabled(!clipboardHistoryEnabled)
+            } header: {
+                Text("Clipboard")
+            } footer: {
+                Text(
+                    "Records text, links and images. Click an item in the clipboard tab to paste it back into the app it came from."
+                )
+                .multilineTextAlignment(.trailing)
+                .foregroundStyle(.secondary)
+                .font(.caption)
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Toolbox")
     }
 }
 

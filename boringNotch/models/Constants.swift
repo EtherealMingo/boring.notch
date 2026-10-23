@@ -202,6 +202,7 @@ extension Defaults.Keys {
     static let clipboardHistoryEnabled = Key<Bool>("clipboardHistoryEnabled", default: false)
     static let clipboardHistoryLimit = Key<Int>("clipboardHistoryLimit", default: 200)
     static let toolboxRegionShortcutEnabled = Key<Bool>("toolboxRegionShortcutEnabled", default: true)
+    static let toolboxSelectionTranslateEnabled = Key<Bool>("toolboxSelectionTranslateEnabled", default: true)
 
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
 }

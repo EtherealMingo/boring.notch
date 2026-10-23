@@ -412,12 +412,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         KeyboardShortcuts.onKeyDown(for: .regionScreenshot) {
             Task { @MainActor in
+                guard Defaults[.toolboxRegionShortcutEnabled] else { return }
                 ScreenshotManager.shared.capture(.region)
             }
         }
 
         KeyboardShortcuts.onKeyDown(for: .selectionTranslate) {
             Task { @MainActor in
+                guard Defaults[.toolboxSelectionTranslateEnabled] else { return }
                 TranslateService.shared.translateSelectionFromFrontApp()
             }
         }
