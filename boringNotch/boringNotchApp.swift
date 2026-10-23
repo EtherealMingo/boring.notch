@@ -67,6 +67,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
+    private var windowHeightCancellables: Set<AnyCancellable> = []
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -251,6 +252,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         window.orderFrontRegardless()
         NotchSpaceManager.shared.notchSpace.windows.insert(window)
+
+        // Grow/shrink the (transparent, click-catching) window with the notch content
+        // so taller panels like the translator aren't clipped, without ever
+        // shrinking below the classic open size.
+        viewModel.$notchSize
+            .receive(on: RunLoop.main)
+            .sink { [weak window] size in
+                guard let window, let screen = window.screen else { return }
+                let targetHeight = max(size.height, openNotchSize.height) + shadowPadding
+                guard abs(window.frame.height - targetHeight) > 0.5 else { return }
+                var frame = window.frame
+                frame.origin.y = screen.frame.maxY - targetHeight
+                frame.size.height = targetHeight
+                window.setFrame(frame, display: false)
+            }
+            .store(in: &windowHeightCancellables)
 
         // Observe when the window's screen changes so we can update drag detectors
         windowScreenDidChangeObserver = NotificationCenter.default.addObserver(

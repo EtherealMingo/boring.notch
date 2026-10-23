@@ -14,7 +14,21 @@ let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
 let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
+/// Tallest content the open notch can grow to (toolbox tabs with lists/results).
+let maxOpenNotchHeight: CGFloat = 260
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
+
+/// Content height of the open notch for a given view — lets tall panels
+/// (translation results, clipboard history) stretch the notch instead of clipping.
+@MainActor func openNotchHeight(for view: NotchViews, toolboxTab: ToolboxTab) -> CGFloat {
+    guard view == .toolbox else { return openNotchSize.height }
+    switch toolboxTab {
+    case .screenshot:
+        return openNotchSize.height
+    case .translate, .clipboard:
+        return maxOpenNotchHeight
+    }
+}
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 
 enum MusicPlayerImageSizes {

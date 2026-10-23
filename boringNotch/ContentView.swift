@@ -203,7 +203,7 @@ struct ContentView: View {
             }
         }
         .padding(.bottom, 8)
-        .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
+        .frame(maxWidth: windowSize.width, maxHeight: maxOpenNotchHeight + shadowPadding, alignment: .top)
         .compositingGroup()
         .scaleEffect(
             x: gestureScale,

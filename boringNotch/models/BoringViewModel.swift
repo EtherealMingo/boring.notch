@@ -65,7 +65,20 @@ class BoringViewModel: NSObject, ObservableObject {
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
-        
+
+        // Stretch the open notch when switching to a taller view (e.g. toolbox translate/clipboard)
+        Publishers.CombineLatest(coordinator.$currentView, coordinator.$toolboxTab)
+            .dropFirst()
+            .sink { [weak self] view, tab in
+                guard let self, self.notchState == .open else { return }
+                let height = openNotchHeight(for: view, toolboxTab: tab)
+                guard height != self.notchSize.height else { return }
+                withAnimation(self.animation) {
+                    self.notchSize.height = height
+                }
+            }
+            .store(in: &cancellables)
+
         setupDetectorObserver()
     }
     
@@ -190,7 +203,10 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func open() {
-        self.notchSize = openNotchSize
+        self.notchSize = CGSize(
+            width: openNotchSize.width,
+            height: openNotchHeight(for: coordinator.currentView, toolboxTab: coordinator.toolboxTab)
+        )
         self.notchState = .open
         
         // Force music information update when notch is opened
