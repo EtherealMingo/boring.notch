@@ -56,6 +56,7 @@ private struct ScrollMonitor: NSViewRepresentable {
         private let threshold: CGFloat
         private let action: (CGFloat, NSEvent.Phase) -> Void
         private var monitor: Any?
+        private weak var monitoredView: NSView?
         private var accumulated: CGFloat = 0
         private var active = false
             private var endTask: Task<Void, Never>?
@@ -86,6 +87,7 @@ private struct ScrollMonitor: NSViewRepresentable {
 
         func installMonitor(on view: NSView) {
             removeMonitor()
+            monitoredView = view
             monitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
                 guard let self = self, event.window === view?.window else { return event }
                 self.handleScroll(event)
@@ -98,6 +100,7 @@ private struct ScrollMonitor: NSViewRepresentable {
                 NSEvent.removeMonitor(monitor)
                 self.monitor = nil
             }
+            monitoredView = nil
             accumulated = 0
             active = false
             endTask?.cancel()
@@ -105,6 +108,19 @@ private struct ScrollMonitor: NSViewRepresentable {
         }
 
         private func handleScroll(_ event: NSEvent) {
+            // Scrolling over scrollable content inside the window (e.g. the clipboard
+            // history list) must scroll that content, not be treated as the
+            // swipe-up-to-close / swipe-down-to-open gesture.
+            if let window = monitoredView?.window,
+               let hit = window.contentView?.hitTest(event.locationInWindow),
+               hit is NSScrollView || hit.enclosingScrollView != nil {
+                if active { action(0, .ended) }
+                active = false
+                accumulated = 0
+                endTask?.cancel()
+                return
+            }
+
             if event.phase == .ended || event.momentumPhase == .ended {
                 if active {
                     action(accumulated.magnitude, .ended)

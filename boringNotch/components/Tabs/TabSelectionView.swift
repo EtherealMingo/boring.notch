@@ -26,25 +26,22 @@ struct TabSelectionView: View {
     var body: some View {
         HStack(spacing: 0) {
             ForEach(tabs) { tab in
-                    TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
-                        withAnimation(.smooth) {
+                    // Read selection OUTSIDE the background closure: reading
+                    // `coordinator` inside a closure modifier lets SwiftUI skip
+                    // re-evaluating it, which leaves the capsule one switch
+                    // behind the actual content.
+                    let isSelected = coordinator.currentView == tab.view
+                    TabButton(label: tab.label, icon: tab.icon, selected: isSelected) {
+                        withAnimation(.easeInOut(duration: 0.2)) {
                             coordinator.currentView = tab.view
                         }
                     }
                     .frame(height: 26)
-                    .foregroundStyle(tab.view == coordinator.currentView ? .white : .gray)
-                    .background {
-                        if tab.view == coordinator.currentView {
-                            Capsule()
-                                .fill(coordinator.currentView == tab.view ? Color(nsColor: .secondarySystemFill) : Color.clear)
-                                .matchedGeometryEffect(id: "capsule", in: animation)
-                        } else {
-                            Capsule()
-                                .fill(coordinator.currentView == tab.view ? Color(nsColor: .secondarySystemFill) : Color.clear)
-                                .matchedGeometryEffect(id: "capsule", in: animation)
-                                .hidden()
-                        }
-                    }
+                    .foregroundStyle(isSelected ? .white : .gray)
+                    .background(
+                        Capsule()
+                            .fill(isSelected ? Color.white.opacity(0.16) : Color.clear)
+                    )
             }
         }
         .clipShape(Capsule())

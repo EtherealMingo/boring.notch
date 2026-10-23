@@ -21,7 +21,7 @@ struct BouncingButtonStyle: ButtonStyle {
             )
             .scaleEffect(isPressed ? 0.9 : 1.0)
             .onChange(of: configuration.isPressed) { _, _ in
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.3, blendDuration: 0.3)) {
+                withAnimation(.easeInOut(duration: 0.15)) {
                     isPressed.toggle()
                 }
             }

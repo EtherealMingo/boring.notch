@@ -17,11 +17,8 @@ public class BoringAnimations {
     }
     
     var animation: Animation {
-        if #available(macOS 14.0, *), notchStyle == .notch {
-            Animation.spring(.bouncy(duration: 0.4))
-        } else {
-            Animation.timingCurve(0.16, 1, 0.3, 1, duration: 0.7)
-        }
+        // No springs: the notch must move with plain easing, never overshoot.
+        Animation.easeInOut(duration: 0.4)
     }
     
     // TODO: Move all animations to this file

@@ -253,26 +253,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.orderFrontRegardless()
         NotchSpaceManager.shared.notchSpace.windows.insert(window)
 
-        // Grow/shrink the (transparent, click-catching) window with the notch content
-        // so taller panels like the translator aren't clipped, without ever
-        // shrinking below the classic open size.
+        // Keep the (transparent, click-catching) window aligned with the notch:
+        //  - while the notch is open the window stays at the TALLEST possible
+        //    size no matter which tab is shown, so switching home <-> toolbox
+        //    never resizes the window at all. Any live resize here fights the
+        //    SwiftUI height animation with a second clock, which showed up as
+        //    the panel jittering / dropping and re-attaching to the menu bar.
+        //  - on close the window shrinks only after SwiftUI's close animation
+        //    has settled (a transparent window snapping smaller is invisible),
+        //    so the shrinking panel is never clipped.
+        var pendingResize: Task<Void, Never>?
         viewModel.$notchSize
             .receive(on: RunLoop.main)
             .sink { [weak window] size in
                 guard let window else { return }
-                let targetHeight = max(size.height, openNotchSize.height) + shadowPadding
+                let isOpen = size.height >= openNotchSize.height
+                let targetHeight = isOpen
+                    ? maxOpenNotchHeight + shadowPadding
+                    : max(size.height, openNotchSize.height) + shadowPadding
                 guard abs(window.frame.height - targetHeight) > 0.5 else { return }
                 // Anchor to the window's own top edge — no NSScreen lookup, so the
                 // resize also lands while the window is mid-capture or off-focus.
-                // Animate with the window animator so the transparent window frame
-                // tracks the SwiftUI spring instead of snapping ahead of it.
-                var frame = window.frame
-                frame.origin.y = frame.maxY - targetHeight
-                frame.size.height = targetHeight
-                NSAnimationContext.runAnimationGroup { context in
-                    context.duration = 0.4
-                    context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-                    window.animator().setFrame(frame, display: false)
+                pendingResize?.cancel()
+                if targetHeight > window.frame.height {
+                    var frame = window.frame
+                    frame.origin.y = frame.maxY - targetHeight
+                    frame.size.height = targetHeight
+                    window.setFrame(frame, display: false)
+                } else {
+                    pendingResize = Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(450))
+                        guard !Task.isCancelled else { return }
+                        var frame = window.frame
+                        frame.origin.y = frame.maxY - targetHeight
+                        frame.size.height = targetHeight
+                        window.setFrame(frame, display: false)
+                    }
                 }
             }
             .store(in: &windowHeightCancellables)

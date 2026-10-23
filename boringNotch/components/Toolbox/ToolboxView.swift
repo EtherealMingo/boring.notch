@@ -10,16 +10,40 @@ import SwiftUI
 struct ToolboxView: View {
     @ObservedObject private var coordinator = BoringViewCoordinator.shared
 
+    private let tabs: [(tab: ToolboxTab, label: String)] = [
+        (.screenshot, "截图"),
+        (.translate, "翻译"),
+        (.clipboard, "剪贴板")
+    ]
+
     var body: some View {
         VStack(spacing: 6) {
-            Picker("", selection: $coordinator.toolboxTab) {
-                Text("截图").tag(ToolboxTab.screenshot)
-                Text("翻译").tag(ToolboxTab.translate)
-                Text("剪贴板").tag(ToolboxTab.clipboard)
+            // Custom segmented tabs — the native segmented Picker renders its
+            // selection almost invisibly on this dark, non-activating panel.
+            HStack(spacing: 4) {
+                ForEach(tabs, id: \.tab) { tab, label in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            coordinator.toolboxTab = tab
+                        }
+                    } label: {
+                        Text(label)
+                            .font(.caption)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 5)
+                            .foregroundStyle(coordinator.toolboxTab == tab ? .white : .gray)
+                            .background(
+                                Capsule()
+                                    .fill(coordinator.toolboxTab == tab
+                                          ? Color.white.opacity(0.16)
+                                          : Color.clear)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .padding(.horizontal, 40)
+            .padding(3)
+            .background(Capsule().fill(Color.white.opacity(0.08)))
 
             Group {
                 switch coordinator.toolboxTab {

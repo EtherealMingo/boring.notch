@@ -71,13 +71,18 @@ class BoringViewModel: NSObject, ObservableObject {
         Publishers.CombineLatest(coordinator.$currentView, coordinator.$toolboxTab)
             .dropFirst()
             // @Published fires from willSet — defer to the next runloop pass so
-            // any state read inside openNotchHeight is already stored.
+            // any state read inside openNotchHeight is already stored, and so
+            // this notchSize mutation never lands inside SwiftUI's ongoing
+            // view-update cycle (that would drop sibling invalidations — the
+            // header tab capsule went stale otherwise).
             .receive(on: RunLoop.main)
             .sink { [weak self] view, tab in
                 guard let self, self.notchState == .open else { return }
                 let height = openNotchHeight(for: view, toolboxTab: tab)
                 guard height != self.notchSize.height else { return }
-                withAnimation(self.animation) {
+                // Tab switches resize the open notch; use a non-overshooting
+                // curve so the panel grows without any bounce.
+                withAnimation(.easeInOut(duration: 0.4)) {
                     self.notchSize.height = height
                 }
             }
@@ -207,11 +212,13 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func open() {
+        // State first: the tab-switch publisher fires synchronously from
+        // `willSet` and must already see `.open` when the size lands.
+        self.notchState = .open
         self.notchSize = CGSize(
             width: openNotchSize.width,
             height: openNotchHeight(for: coordinator.currentView, toolboxTab: coordinator.toolboxTab)
         )
-        self.notchState = .open
         
         // Force music information update when notch is opened
         MusicManager.shared.forceUpdate()
@@ -222,9 +229,12 @@ class BoringViewModel: NSObject, ObservableObject {
         if SharingStateManager.shared.preventNotchClose {
             return
         }
+        // State first: the tab-switch publisher fires synchronously from
+        // `willSet` and must already see `.closed` when the size lands,
+        // otherwise it would stretch the notch back open mid-close.
+        self.notchState = .closed
         self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
         self.closedNotchSize = self.notchSize
-        self.notchState = .closed
         self.isBatteryPopoverActive = false
         self.coordinator.sneakPeek.show = false
         self.edgeAutoOpenActive = false

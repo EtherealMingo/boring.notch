@@ -37,8 +37,9 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
 
-    // Shared interactive spring for movement/resizing to avoid conflicting animations
-    private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
+    // Shared easing for movement/resizing to avoid conflicting animations.
+    // Plain easeInOut — no springs, so nothing ever overshoots or bounces.
+    private let animationSpring = Animation.easeInOut(duration: 0.3)
 
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
@@ -91,7 +92,10 @@ struct ContentView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 let mainLayout = NotchLayout()
-                    .frame(alignment: .top)
+                    .frame(
+                        height: vm.notchState == .open ? vm.notchSize.height : nil,
+                        alignment: .top
+                    )
                     .padding(
                         .horizontal,
                         vm.notchState == .open
@@ -118,10 +122,14 @@ struct ContentView: View {
                     )
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    // Top-aligned: a centered frame would sink the panel when
+                    // the (taller) window frame snaps ahead of the height
+                    // animation, then rise back — looks like the whole window
+                    // drops and re-attaches to the menu bar.
+                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil, alignment: .top)
                     .conditionalModifier(true) { view in
-                        let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
-                        let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
+                        let openAnimation = Animation.easeInOut(duration: 0.4)
+                        let closeAnimation = Animation.easeInOut(duration: 0.35)
                         
                         return view
                             .animation(vm.notchState == .open ? openAnimation : closeAnimation, value: vm.notchState)
@@ -354,9 +362,9 @@ struct ContentView: View {
                     }
                 }
                 .transition(
-                    .scale(scale: 0.8, anchor: .top)
-                    .combined(with: .opacity)
-                    .animation(.smooth(duration: 0.35))
+                    // Crossfade only — a scale transition here makes the toolbox
+                    // visibly "pop" when switching from home.
+                    .opacity.animation(.easeInOut(duration: 0.25))
                 )
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
@@ -547,6 +555,16 @@ struct ContentView: View {
                 guard !Task.isCancelled else { return }
                 
                 await MainActor.run {
+                    // A window resize (e.g. switching to the toolbox, whose panel
+                    // is taller) can make AppKit deliver a spurious hover-exit
+                    // while the physical pointer never left the window. That
+                    // used to close the notch right after a tab switch. Verify
+                    // the real cursor position before believing the exit.
+                    let mouse = NSEvent.mouseLocation
+                    let stillInside = NotchSpaceManager.shared.notchSpace.windows
+                        .contains { $0.frame.insetBy(dx: -8, dy: -8).contains(mouse) }
+                    if stillInside { return }
+                    
                     withAnimation(animationSpring) {
                         self.isHovering = false
                     }
