@@ -36,10 +36,11 @@ final class TranslateService: ObservableObject {
         translatedText = ""
         lastError = nil
         requestID = UUID()
+        BoringViewCoordinator.shared.toolboxTab = .translate
         NotificationCenter.default.post(
             name: .openToolboxTab,
             object: nil,
-            userInfo: ["tab": NotchViews.translate]
+            userInfo: ["tab": NotchViews.toolbox]
         )
     }
 

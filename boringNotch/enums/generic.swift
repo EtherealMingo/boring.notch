@@ -27,6 +27,10 @@ public enum NotchState {
 public enum NotchViews: String {
     case home
     case shelf
+    case toolbox
+}
+
+public enum ToolboxTab: String {
     case screenshot
     case translate
     case clipboard

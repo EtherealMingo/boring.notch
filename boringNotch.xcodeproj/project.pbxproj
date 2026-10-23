@@ -144,6 +144,7 @@
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 		919DF843154390FB42AF54B7 /* OCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E662A675D8B6CE23A5B54D0B /* OCRService.swift */; };
+		1B71CF9CA7DE6B3C79EE8272 /* ToolboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB94CFE74C59369C4388300B /* ToolboxView.swift */; };
 		A51CC5AE38B9349207DC15AB /* ScreenshotManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1EACCB32AA35833B2785A2A /* ScreenshotManager.swift */; };
 		D363033CFB402689E0830CD9 /* RegionSelectionOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1215ACF73F9648AE96237CAC /* RegionSelectionOverlay.swift */; };
 		2B596C7D91E50618B6652D8E /* AnnotationEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30805484E0CDFAB77D5B61C /* AnnotationEditor.swift */; };
@@ -320,6 +321,7 @@
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 		E662A675D8B6CE23A5B54D0B /* OCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRService.swift; sourceTree = "<group>"; };
+		DB94CFE74C59369C4388300B /* ToolboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolboxView.swift; sourceTree = "<group>"; };
 		A1EACCB32AA35833B2785A2A /* ScreenshotManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotManager.swift; sourceTree = "<group>"; };
 		1215ACF73F9648AE96237CAC /* RegionSelectionOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionSelectionOverlay.swift; sourceTree = "<group>"; };
 		F30805484E0CDFAB77D5B61C /* AnnotationEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationEditor.swift; sourceTree = "<group>"; };
@@ -784,6 +786,7 @@
 				88BE556CA44A0035C6661D13 /* Screenshot */,
 				2000FF05AAD6E0A11CD47C76 /* Translate */,
 				CC9045FBF7CCCCAB285A1FDD /* Clipboard */,
+				DB94CFE74C59369C4388300B /* ToolboxView.swift */,
 			);
 			path = Toolbox;
 			sourceTree = "<group>";
@@ -977,6 +980,7 @@
 				175EEF9C37E008B0EBC4D33C /* TranslateView.swift in Sources */,
 				243E5C4BA15386A3B19DED18 /* ClipboardManager.swift in Sources */,
 				43B957002A2B29F75109070E /* ClipboardView.swift in Sources */,
+				1B71CF9CA7DE6B3C79EE8272 /* ToolboxView.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchHUD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,

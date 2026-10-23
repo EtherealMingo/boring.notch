@@ -349,12 +349,8 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
-                    case .screenshot:
-                        ScreenshotView()
-                    case .translate:
-                        TranslateView()
-                    case .clipboard:
-                        ClipboardView()
+                    case .toolbox:
+                        ToolboxView()
                     }
                 }
                 .transition(

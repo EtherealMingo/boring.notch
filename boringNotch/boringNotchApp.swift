@@ -428,7 +428,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 guard Defaults[.clipboardHistoryEnabled] else { return }
                 ClipboardManager.shared.start()
-                self?.openNotchToTab(.clipboard)
+                BoringViewCoordinator.shared.toolboxTab = .clipboard
+                self?.openNotchToTab(.toolbox)
             }
         }
 
