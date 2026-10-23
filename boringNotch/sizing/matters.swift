@@ -24,7 +24,8 @@ let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize
     guard view == .toolbox else { return openNotchSize.height }
     switch toolboxTab {
     case .screenshot:
-        return openNotchSize.height
+        // The "last capture" preview row makes this panel taller once a shot exists.
+        return ScreenshotManager.shared.lastCapturedImage != nil ? maxOpenNotchHeight : openNotchSize.height
     case .translate, .clipboard:
         return maxOpenNotchHeight
     }

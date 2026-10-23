@@ -259,11 +259,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         viewModel.$notchSize
             .receive(on: RunLoop.main)
             .sink { [weak window] size in
-                guard let window, let screen = window.screen else { return }
+                guard let window else { return }
                 let targetHeight = max(size.height, openNotchSize.height) + shadowPadding
                 guard abs(window.frame.height - targetHeight) > 0.5 else { return }
+                // Anchor to the window's own top edge — no NSScreen lookup, so the
+                // resize also lands while the window is mid-capture or off-focus.
                 var frame = window.frame
-                frame.origin.y = screen.frame.maxY - targetHeight
+                frame.origin.y = frame.maxY - targetHeight
                 frame.size.height = targetHeight
                 window.setFrame(frame, display: false)
             }
