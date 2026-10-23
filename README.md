@@ -29,6 +29,19 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
   <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="Demo GIF" />
 </p>
 
+> [!NOTE]
+> **This fork adds a Toolbox (工具箱) to the notch** — three new tabs alongside Home and Shelf:
+>
+> | Tab | Features |
+> | --- | --- |
+> | 截图 Screenshot | Region (⌘⇧X) / window / fullscreen capture with ScreenCaptureKit, a native annotation editor (pen / rectangle / arrow / text), copy & save, pin-on-top floating windows (Snipaste style), and OCR via Apple Vision |
+> | 翻译 Translate | Apple on-device translation (macOS 15+): input translation, image text translation (screenshot → OCR → translate), and cross-app selection translation (⌃⌥Y) |
+> | 剪贴板 Clipboard | Maccy-style history for text / links / images, type filter, search, favorites, click an item to paste it back into the previously active app |
+>
+> All processing is local. Clipboard history is off by default and can be enabled in the Clipboard tab. Screen recording permission is required for capture/OCR; Accessibility permission is required for selection translation and paste-back.
+>
+> New code lives in `boringNotch/components/Toolbox/`. Upstream: [TheBoredTeam/boring.notch](https://github.com/TheBoredTeam/boring.notch) (GPL-3.0).
+
 <!--https://github.com/user-attachments/assets/19b87973-4b3a-4853-b532-7e82d1d6b040-->
 ---
 <!--## Table of Contents

@@ -24,9 +24,12 @@ public enum NotchState {
     case open
 }
 
-public enum NotchViews {
+public enum NotchViews: String {
     case home
     case shelf
+    case screenshot
+    case translate
+    case clipboard
 }
 
 enum SettingsEnum {

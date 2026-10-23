@@ -410,6 +410,47 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .regionScreenshot) {
+            Task { @MainActor in
+                ScreenshotManager.shared.capture(.region)
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .selectionTranslate) {
+            Task { @MainActor in
+                TranslateService.shared.translateSelectionFromFrontApp()
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .clipboardHistoryPanel) { [weak self] in
+            Task { @MainActor in
+                guard Defaults[.clipboardHistoryEnabled] else { return }
+                ClipboardManager.shared.start()
+                self?.openNotchToTab(.clipboard)
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: .openToolboxTab, object: nil, queue: .main
+        ) { [weak self] note in
+            guard let tab = note.userInfo?["tab"] as? NotchViews else { return }
+            Task { @MainActor in
+                self?.openNotchToTab(tab)
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: .closeNotch, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.closeAllNotches()
+            }
+        }
+
+        if Defaults[.clipboardHistoryEnabled] {
+            ClipboardManager.shared.start()
+        }
+
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm
             let window = createBoringNotchWindow(
@@ -441,6 +482,38 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func playWelcomeSound() {
         let audioPlayer = AudioPlayer()
         audioPlayer.play(fileName: "boring", fileExtension: "m4a")
+    }
+
+    // MARK: - Toolbox helpers
+
+    /// Open the notch on the screen under the cursor and switch to the given tab.
+    @MainActor
+    func openNotchToTab(_ tab: NotchViews) {
+        let mouseLocation = NSEvent.mouseLocation
+        var viewModel = self.vm
+
+        if Defaults[.showOnAllDisplays] {
+            for screen in NSScreen.screens where screen.frame.contains(mouseLocation) {
+                if let uuid = screen.displayUUID, let screenViewModel = self.viewModels[uuid] {
+                    viewModel = screenViewModel
+                    break
+                }
+            }
+        }
+
+        closeNotchTask?.cancel()
+        closeNotchTask = nil
+        coordinator.currentView = tab
+        viewModel.open()
+    }
+
+    @MainActor
+    func closeAllNotches() {
+        if Defaults[.showOnAllDisplays] {
+            viewModels.values.forEach { $0.close() }
+        } else {
+            vm.close()
+        }
     }
 
     func deviceHasNotch() -> Bool {

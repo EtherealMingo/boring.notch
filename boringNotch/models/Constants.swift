@@ -198,5 +198,10 @@ extension Defaults.Keys {
         }
     }
 
+    // MARK: Toolbox (截图 / 翻译 / 剪贴板)
+    static let clipboardHistoryEnabled = Key<Bool>("clipboardHistoryEnabled", default: false)
+    static let clipboardHistoryLimit = Key<Int>("clipboardHistoryLimit", default: 200)
+    static let toolboxRegionShortcutEnabled = Key<Bool>("toolboxRegionShortcutEnabled", default: true)
+
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
 }
