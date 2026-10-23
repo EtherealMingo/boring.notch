@@ -264,10 +264,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 guard abs(window.frame.height - targetHeight) > 0.5 else { return }
                 // Anchor to the window's own top edge — no NSScreen lookup, so the
                 // resize also lands while the window is mid-capture or off-focus.
+                // Animate with the window animator so the transparent window frame
+                // tracks the SwiftUI spring instead of snapping ahead of it.
                 var frame = window.frame
                 frame.origin.y = frame.maxY - targetHeight
                 frame.size.height = targetHeight
-                window.setFrame(frame, display: false)
+                NSAnimationContext.runAnimationGroup { context in
+                    context.duration = 0.4
+                    context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                    window.animator().setFrame(frame, display: false)
+                }
             }
             .store(in: &windowHeightCancellables)
 

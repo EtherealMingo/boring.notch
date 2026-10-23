@@ -66,18 +66,14 @@ class BoringViewModel: NSObject, ObservableObject {
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
 
-        // Stretch the open notch when switching to a taller view (e.g. toolbox translate/clipboard)
-        // or when the screenshot tab gains its "last capture" preview row.
-        Publishers.CombineLatest3(
-            coordinator.$currentView,
-            coordinator.$toolboxTab,
-            ScreenshotManager.shared.$lastCapturedImage
-        )
+        // Stretch the open notch only when entering/leaving the toolbox —
+        // inside the toolbox the height stays constant to avoid a visual jump.
+        Publishers.CombineLatest(coordinator.$currentView, coordinator.$toolboxTab)
             .dropFirst()
             // @Published fires from willSet — defer to the next runloop pass so
-            // lastCapturedImage (read inside openNotchHeight) is already stored.
+            // any state read inside openNotchHeight is already stored.
             .receive(on: RunLoop.main)
-            .sink { [weak self] view, tab, _ in
+            .sink { [weak self] view, tab in
                 guard let self, self.notchState == .open else { return }
                 let height = openNotchHeight(for: view, toolboxTab: tab)
                 guard height != self.notchSize.height else { return }

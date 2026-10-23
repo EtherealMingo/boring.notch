@@ -23,6 +23,7 @@ struct ScreenshotView: View {
                     manager.capture(.fullscreen)
                 }
             }
+            .frame(maxHeight: .infinity)
 
             if let image = manager.lastCapturedImage {
                 HStack(spacing: 12) {
@@ -64,15 +65,16 @@ struct ScreenshotView: View {
     private func captureButton(title: String, icon: String, hint: String? = nil, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 6) {
+                Spacer(minLength: 0)
                 Image(systemName: icon)
                     .font(.system(size: 20))
                 Text(title).font(.caption)
                 if let hint {
                     Text(hint).font(.caption2).foregroundStyle(.gray)
                 }
+                Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(.white.opacity(0.08))
             .clipShape(RoundedRectangle(cornerRadius: 10))
         }

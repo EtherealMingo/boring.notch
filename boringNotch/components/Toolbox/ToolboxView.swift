@@ -32,6 +32,11 @@ struct ToolboxView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Crossfade between tools — no height change inside the toolbox,
+            // just a soft content swap.
+            .id(coordinator.toolboxTab)
+            .transition(.opacity)
+            .animation(.easeInOut(duration: 0.15), value: coordinator.toolboxTab)
         }
     }
 }

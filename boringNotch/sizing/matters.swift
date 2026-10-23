@@ -18,17 +18,11 @@ let openNotchSize: CGSize = .init(width: 640, height: 190)
 let maxOpenNotchHeight: CGFloat = 260
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
 
-/// Content height of the open notch for a given view — lets tall panels
-/// (translation results, clipboard history) stretch the notch instead of clipping.
+/// Content height of the open notch for a given view.
+/// Toolbox keeps a constant tall height across its three tools so switching
+/// between screenshot / translate / clipboard never resizes (no visual jump).
 @MainActor func openNotchHeight(for view: NotchViews, toolboxTab: ToolboxTab) -> CGFloat {
-    guard view == .toolbox else { return openNotchSize.height }
-    switch toolboxTab {
-    case .screenshot:
-        // The "last capture" preview row makes this panel taller once a shot exists.
-        return ScreenshotManager.shared.lastCapturedImage != nil ? maxOpenNotchHeight : openNotchSize.height
-    case .translate, .clipboard:
-        return maxOpenNotchHeight
-    }
+    view == .toolbox ? maxOpenNotchHeight : openNotchSize.height
 }
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 
