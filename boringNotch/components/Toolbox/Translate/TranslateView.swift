@@ -68,41 +68,43 @@ private struct TranslateView15: View {
                 .disabled(service.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || service.isTranslating)
             }
 
-            // Input
-            TextEditor(text: $service.inputText)
-                .font(.body)
-                .scrollContentBackground(.hidden)
-                .padding(6)
-                .background(.white.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .frame(minHeight: 56, maxHeight: 90)
-
-            // Result
-            Group {
-                if service.isTranslating {
-                    HStack {
-                        ProgressView().controlSize(.small)
-                        Text("翻译中…").font(.caption).foregroundStyle(.gray)
-                        Spacer()
-                    }
-                } else if !service.translatedText.isEmpty {
-                    ScrollView {
-                        Text(service.translatedText)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .textSelection(.enabled)
-                    }
+            // Input (left) and result (right), side by side
+            HStack(alignment: .top, spacing: 10) {
+                TextEditor(text: $service.inputText)
+                    .font(.body)
+                    .scrollContentBackground(.hidden)
                     .padding(6)
                     .background(.white.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .frame(minHeight: 44, maxHeight: 90)
-                } else if let error = service.lastError {
-                    Text(error).font(.caption).foregroundStyle(.orange)
-                } else {
-                    Text("输入文字，或在其他应用选中文本后按 ⌃⌥Y")
-                        .font(.caption)
-                        .foregroundStyle(.gray)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                Group {
+                    if service.isTranslating {
+                        HStack {
+                            ProgressView().controlSize(.small)
+                            Text("翻译中…").font(.caption).foregroundStyle(.gray)
+                            Spacer()
+                        }
+                    } else if !service.translatedText.isEmpty {
+                        ScrollView {
+                            Text(service.translatedText)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .textSelection(.enabled)
+                        }
+                    } else if let error = service.lastError {
+                        Text(error).font(.caption).foregroundStyle(.orange)
+                    } else {
+                        Text("输入文字，或在其他应用选中文本后按 ⌃⌥Y")
+                            .font(.caption)
+                            .foregroundStyle(.gray)
+                    }
                 }
+                .padding(6)
+                .background(.white.opacity(0.06))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
+            .frame(maxHeight: .infinity)
 
             if !service.translatedText.isEmpty {
                 HStack {

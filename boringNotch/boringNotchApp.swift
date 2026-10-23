@@ -293,6 +293,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &windowHeightCancellables)
 
+        // A closed notch must never hold key status: after the toolbox's text
+        // fields made the panel key, closing it would otherwise leave
+        // keystrokes going into a collapsed, invisible-looking window.
+        viewModel.$notchState
+            .receive(on: RunLoop.main)
+            .sink { [weak window] state in
+                if state == .closed {
+                    window?.resignKey()
+                }
+            }
+            .store(in: &windowHeightCancellables)
+
         // Observe when the window's screen changes so we can update drag detectors
         windowScreenDidChangeObserver = NotificationCenter.default.addObserver(
             forName: NSWindow.didChangeScreenNotification,
