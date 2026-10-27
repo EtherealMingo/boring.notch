@@ -154,6 +154,11 @@
 		175EEF9C37E008B0EBC4D33C /* TranslateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D4FD2EA6099CC5AE0D146C /* TranslateView.swift */; };
 		243E5C4BA15386A3B19DED18 /* ClipboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968AA641F0EC23E0E43A832A /* ClipboardManager.swift */; };
 		43B957002A2B29F75109070E /* ClipboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1160586B899B395FF1090310 /* ClipboardView.swift */; };
+		DB2600030000000000000000D1 /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB2600020000000000000000D1 /* DatabaseManager.swift */; };
+		DB2600050000000000000000D1 /* Migrations.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB2600040000000000000000D1 /* Migrations.swift */; };
+		DB2600070000000000000000D1 /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB2600060000000000000000D1 /* Records.swift */; };
+		DB2600090000000000000000D1 /* BitmapStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB2600080000000000000000D1 /* BitmapStore.swift */; };
+		DB26000C0000000000000000D1 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = DB26000B0000000000000000D1 /* GRDB */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -331,6 +336,10 @@
 		D4D4FD2EA6099CC5AE0D146C /* TranslateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateView.swift; sourceTree = "<group>"; };
 		968AA641F0EC23E0E43A832A /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManager.swift; sourceTree = "<group>"; };
 		1160586B899B395FF1090310 /* ClipboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardView.swift; sourceTree = "<group>"; };
+		DB2600020000000000000000D1 /* DatabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseManager.swift; sourceTree = "<group>"; };
+		DB2600040000000000000000D1 /* Migrations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Migrations.swift; sourceTree = "<group>"; };
+		DB2600060000000000000000D1 /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
+		DB2600080000000000000000D1 /* BitmapStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -371,6 +380,7 @@
 				111BEA512ECFBF7F0079DD4E /* MacroVisionKit in Frameworks */,
 				B18654392C6F4990000B926A /* KeyboardShortcuts in Frameworks */,
 				B19016222CC15B3D00E3F12E /* Defaults in Frameworks */,
+				DB26000C0000000000000000D1 /* GRDB in Frameworks */,
 				111BE95D2ECD71E10079DD4E /* AsyncXPCConnection in Frameworks */,
 				B1628B922CC260C0003D8DF3 /* SwiftUIIntrospect in Frameworks */,
 			);
@@ -600,6 +610,7 @@
 				14CEF4152C5CAED300855D72 /* boringNotchApp.swift */,
 				14CEF4172C5CAED300855D72 /* ContentView.swift */,
 				B17266E02C6532560031BA0D /* Localizable.xcstrings */,
+				DB2600010000000000000000D1 /* db */,
 				14CEF4192C5CAED400855D72 /* Assets.xcassets */,
 				14A7E5962C65FD31008C1BE9 /* boring.m4a */,
 				1443E7F42C609E650027C1FC /* Info.plist */,
@@ -822,6 +833,17 @@
 			path = Clipboard;
 			sourceTree = "<group>";
 		};
+		DB2600010000000000000000D1 /* db */ = {
+			isa = PBXGroup;
+			children = (
+				DB2600020000000000000000D1 /* DatabaseManager.swift */,
+				DB2600040000000000000000D1 /* Migrations.swift */,
+				DB2600060000000000000000D1 /* Records.swift */,
+				DB2600080000000000000000D1 /* BitmapStore.swift */,
+			);
+			path = db;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -879,6 +901,7 @@
 				111BEA502ECFBF7F0079DD4E /* MacroVisionKit */,
 				111BEA5E2ED07A340079DD4E /* MacroVisionKit */,
 				111BEA6E2ED166E20079DD4E /* MacroVisionKit */,
+				DB26000B0000000000000000D1 /* GRDB */,
 			);
 			productName = dynamicNotch;
 			productReference = 14CEF4122C5CAED300855D72 /* Boring Notch.app */;
@@ -924,6 +947,7 @@
 				11F748712EC9DA9300F841DB /* XCRemoteSwiftPackageReference "lottie-spm" */,
 				111BE95B2ECD71E10079DD4E /* XCRemoteSwiftPackageReference "AsyncXPCConnection" */,
 				111BEA6D2ED166E20079DD4E /* XCRemoteSwiftPackageReference "MacroVisionKit" */,
+				DB26000A0000000000000000D1 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 			);
 			productRefGroup = 14CEF4132C5CAED300855D72 /* Products */;
 			projectDirPath = "";
@@ -1096,6 +1120,10 @@
 				1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */,
 				11CFC6632E09918400748C80 /* MusicControllerSelectionView.swift in Sources */,
 				B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */,
+				DB2600030000000000000000D1 /* DatabaseManager.swift in Sources */,
+				DB2600050000000000000000D1 /* Migrations.swift in Sources */,
+				DB2600070000000000000000D1 /* Records.swift in Sources */,
+				DB2600090000000000000000D1 /* BitmapStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1125,7 +1153,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = BoringNotchXPCHelper;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.7.3;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch.BoringNotchXPCHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -1150,7 +1178,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = BoringNotchXPCHelper;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.7.3;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch.BoringNotchXPCHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -1310,8 +1338,8 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = boringNotch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Boring Notch";
-				INFOPLIST_KEY_CFBundleName = "Boring Notch";
+				INFOPLIST_KEY_CFBundleDisplayName = "Islet";
+				INFOPLIST_KEY_CFBundleName = "Islet";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -1325,9 +1353,9 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.7.3;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch;
-				PRODUCT_NAME = "Boring Notch";
+				PRODUCT_NAME = "Islet";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = targeted;
@@ -1364,8 +1392,8 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = boringNotch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Boring Notch";
-				INFOPLIST_KEY_CFBundleName = "Boring Notch";
+				INFOPLIST_KEY_CFBundleDisplayName = "Islet";
+				INFOPLIST_KEY_CFBundleName = "Islet";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -1379,9 +1407,9 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.7.3;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch;
-				PRODUCT_NAME = "Boring Notch";
+				PRODUCT_NAME = "Islet";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = targeted;
@@ -1514,6 +1542,14 @@
 				minimumVersion = 9.0.2;
 			};
 		};
+		DB26000A0000000000000000D1 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1574,6 +1610,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B19016202CC15B3D00E3F12E /* XCRemoteSwiftPackageReference "Defaults" */;
 			productName = Defaults;
+		};
+		DB26000B0000000000000000D1 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB26000A0000000000000000D1 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

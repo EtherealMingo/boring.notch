@@ -30,9 +30,11 @@ struct TranslateView: View {
 private struct TranslateView15: View {
     @ObservedObject private var service = TranslateService.shared
 
-    @State private var sourceLanguage: TranslateLanguage = .presets[0]   // 中文简体
+    /// nil = 自动检测（仅源语言允许）
+    @State private var sourceLanguage: TranslateLanguage?
     @State private var targetLanguage: TranslateLanguage = .presets[2]   // 英语
     @State private var configuration: TranslationSession.Configuration?
+    @State private var debounceTask: Task<Void, Never>?
 
     var body: some View {
         content
@@ -43,122 +45,251 @@ private struct TranslateView15: View {
 
     @ViewBuilder
     private var content: some View {
-        VStack(spacing: 10) {
-            // Language row
-            HStack(spacing: 8) {
-                languagePicker(selection: $sourceLanguage)
-                Button {
-                    swap(&sourceLanguage, &targetLanguage)
-                } label: {
-                    Image(systemName: "arrow.left.arrow.right")
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.gray)
-                languagePicker(selection: $targetLanguage)
-
-                Spacer()
-
-                Button {
-                    triggerTranslation()
-                } label: {
-                    Label("翻译", systemImage: "character.bubble")
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
-                .disabled(service.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || service.isTranslating)
-            }
-
-            // Input (left) and result (right), side by side
-            HStack(alignment: .top, spacing: 10) {
-                TextEditor(text: $service.inputText)
-                    .font(.body)
-                    .scrollContentBackground(.hidden)
-                    .padding(6)
-                    .background(.white.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                Group {
-                    if service.isTranslating {
-                        HStack {
-                            ProgressView().controlSize(.small)
-                            Text("翻译中…").font(.caption).foregroundStyle(.gray)
-                            Spacer()
-                        }
-                    } else if !service.translatedText.isEmpty {
-                        ScrollView {
-                            Text(service.translatedText)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .textSelection(.enabled)
-                        }
-                    } else if let error = service.lastError {
-                        Text(error).font(.caption).foregroundStyle(.orange)
-                    } else {
-                        Text("输入文字，或在其他应用选中文本后按 ⌃⌥Y")
-                            .font(.caption)
-                            .foregroundStyle(.gray)
-                    }
-                }
-                .padding(6)
-                .background(.white.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            }
-            .frame(maxHeight: .infinity)
-
-            if !service.translatedText.isEmpty {
-                HStack {
-                    Spacer()
-                    Button {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(service.translatedText, forType: .string)
-                    } label: {
-                        Label("复制译文", systemImage: "doc.on.doc").font(.caption)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                }
-            }
+        HStack(spacing: 0) {
+            sourceColumn
+            divider
+            resultColumn
         }
+        .background(.white.opacity(0.04))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
+        .background(manualTriggerButton)
+        .onChange(of: service.inputText) { _, newValue in
+            if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                debounceTask?.cancel()
+                service.translatedText = ""
+                service.isTranslating = false
+                service.lastError = nil
+            } else {
+                scheduleTranslation()
+            }
+        }
+        .onChange(of: sourceLanguage) { _, _ in scheduleTranslation(immediate: true) }
+        .onChange(of: targetLanguage) { _, _ in scheduleTranslation(immediate: true) }
         .onChange(of: service.requestID) { _, _ in
             // Text arrived from screenshot OCR or selection grab
             if !service.inputText.isEmpty {
-                triggerTranslation()
+                scheduleTranslation(immediate: true)
             }
         }
     }
 
-    private func languagePicker(selection: Binding<TranslateLanguage>) -> some View {
+    private var divider: some View {
+        Rectangle()
+            .fill(.white.opacity(0.08))
+            .frame(width: 1)
+            .padding(.vertical, 6)
+    }
+
+    // MARK: - Source column
+
+    private var sourceColumn: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 6) {
+                languagePicker(selection: $sourceLanguage, allowsAutoDetect: true)
+                Spacer(minLength: 0)
+                iconButton("doc.on.clipboard", help: "粘贴") {
+                    if let text = NSPasteboard.general.string(forType: .string), !text.isEmpty {
+                        service.inputText = text
+                    }
+                }
+                if !service.inputText.isEmpty {
+                    iconButton("xmark", help: "清空") {
+                        service.inputText = ""
+                        service.translatedText = ""
+                        service.lastError = nil
+                    }
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.top, 8)
+
+            TextEditor(text: $service.inputText)
+                .font(.body)
+                .scrollContentBackground(.hidden)
+                .padding(.horizontal, 4)
+                .padding(.top, 2)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .accessibilityLabel("原文")
+
+            HStack {
+                if !service.inputText.isEmpty {
+                    Text("\(service.inputText.count) 字")
+                        .font(.caption2)
+                        .foregroundStyle(.gray)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 10)
+            .padding(.bottom, 6)
+            .frame(height: 22)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Result column
+
+    private var resultColumn: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 6) {
+                languagePicker(
+                    selection: Binding(
+                        get: { targetLanguage },
+                        set: { if let lang = $0 { targetLanguage = lang } }
+                    ),
+                    allowsAutoDetect: false
+                )
+                Spacer(minLength: 0)
+                iconButton("arrow.left.arrow.right", help: "交换语言并翻译") {
+                    swapLanguages()
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.top, 8)
+
+            Group {
+                if service.isTranslating {
+                    HStack(spacing: 6) {
+                        ProgressView().controlSize(.small)
+                        Text("翻译中…").font(.caption).foregroundStyle(.gray)
+                        Spacer()
+                    }
+                    .padding(.top, 8)
+                } else if !service.translatedText.isEmpty {
+                    ScrollView {
+                        Text(service.translatedText)
+                            .font(.body)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .textSelection(.enabled)
+                    }
+                    .padding(.top, 6)
+                } else if let error = service.lastError {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(error).font(.caption).foregroundStyle(.orange)
+                        Button("重试") { scheduleTranslation(immediate: true) }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 8)
+                } else {
+                    Text("输入文字，或在其他应用选中文本后按 ⌃⌥Y")
+                        .font(.caption)
+                        .foregroundStyle(.gray)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 8)
+                }
+            }
+            .padding(.horizontal, 10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .accessibilityLabel("译文")
+
+            HStack {
+                Spacer()
+                Button {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(service.translatedText, forType: .string)
+                } label: {
+                    Label("复制译文", systemImage: "doc.on.doc").font(.caption)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(service.translatedText.isEmpty)
+            }
+            .padding(.horizontal, 10)
+            .padding(.bottom, 6)
+            .frame(height: 28)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Controls
+
+    private var manualTriggerButton: some View {
+        Button("") { scheduleTranslation(immediate: true) }
+            .keyboardShortcut(.return, modifiers: .command)
+            .opacity(0)
+            .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
+    }
+
+    private func iconButton(_ systemImage: String, help: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.caption)
+                .foregroundStyle(.gray)
+                .frame(width: 20, height: 20)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(help)
+        .accessibilityLabel(help)
+    }
+
+    private func languagePicker(selection: Binding<TranslateLanguage?>, allowsAutoDetect: Bool) -> some View {
         Menu {
+            if allowsAutoDetect {
+                Button("自动检测") { selection.wrappedValue = nil }
+                Divider()
+            }
             ForEach(TranslateLanguage.presets) { lang in
                 Button(lang.name) { selection.wrappedValue = lang }
             }
         } label: {
-            Text(selection.wrappedValue.name)
-                .font(.caption)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(.white.opacity(0.08))
-                .clipShape(Capsule())
+            HStack(spacing: 3) {
+                Text(selection.wrappedValue?.name ?? "自动检测")
+                Image(systemName: "chevron.up.chevron.down").font(.system(size: 8))
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(.white.opacity(0.08))
+            .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(allowsAutoDetect ? "源语言" : "目标语言")
+    }
+
+    // MARK: - Translation
+
+    private func swapLanguages() {
+        let oldTarget = targetLanguage
+        targetLanguage = sourceLanguage ?? (oldTarget.id == "zh-Hans" ? .presets[2] : .presets[0])
+        sourceLanguage = oldTarget
+        if !service.translatedText.isEmpty {
+            service.inputText = service.translatedText
+            service.translatedText = ""
+        }
+        scheduleTranslation(immediate: true)
+    }
+
+    private func scheduleTranslation(immediate: Bool = false) {
+        debounceTask?.cancel()
+        debounceTask = Task { @MainActor in
+            if !immediate {
+                try? await Task.sleep(for: .milliseconds(600))
+            }
+            guard !Task.isCancelled else { return }
+            triggerTranslation()
+        }
     }
 
     private func triggerTranslation() {
         guard #available(macOS 15.0, *) else { return }
+        let text = service.inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
         service.isTranslating = true
         service.lastError = nil
         // Invalidate to force retrigger even with same languages
         configuration?.invalidate()
         configuration = TranslationSession.Configuration(
-            source: Locale.Language(identifier: sourceLanguage.id),
+            source: sourceLanguage.map { Locale.Language(identifier: $0.id) },
             target: Locale.Language(identifier: targetLanguage.id)
         )
     }
 
-    @available(macOS 15.0, *)
     private func performTranslation(using session: TranslationSession) async {
         let text = await MainActor.run { service.inputText }
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {

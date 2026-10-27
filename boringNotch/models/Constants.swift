@@ -47,16 +47,32 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
     case appleMusic = "Apple Music"
     case spotify = "Spotify"
     case youtubeMusic = "YouTube Music"
-    
+
     var id: String { self.rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .nowPlaying: return "系统正在播放"
+        case .appleMusic: return "Apple Music"
+        case .spotify: return "Spotify"
+        case .youtubeMusic: return "YouTube Music"
+        }
+    }
 }
 
 // Sneak peek styles for selection in settings
 enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     case standard = "Default"
     case inline = "Inline"
-    
+
     var id: String { self.rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .standard: return "默认"
+        case .inline: return "内联"
+        }
+    }
 }
 
 // Action to perform when Option (⌥) is held while pressing media keys
@@ -66,6 +82,14 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
     case none = "No Action"
 
     var id: String { self.rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .openSettings: return "打开系统设置"
+        case .showHUD: return "显示 HUD"
+        case .none: return "无操作"
+        }
+    }
 }
 
 extension Defaults.Keys {
@@ -73,7 +97,7 @@ extension Defaults.Keys {
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
-    static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
+    static let releaseName = Key<String>("releaseName", default: "First Island 🏝️")
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
@@ -200,7 +224,7 @@ extension Defaults.Keys {
 
     // MARK: Toolbox (截图 / 翻译 / 剪贴板)
     static let clipboardHistoryEnabled = Key<Bool>("clipboardHistoryEnabled", default: false)
-    static let clipboardHistoryLimit = Key<Int>("clipboardHistoryLimit", default: 200)
+    static let clipboardExpireAfter24h = Key<Bool>("clipboardExpireAfter24h", default: false)
     static let toolboxRegionShortcutEnabled = Key<Bool>("toolboxRegionShortcutEnabled", default: true)
     static let toolboxSelectionTranslateEnabled = Key<Bool>("toolboxSelectionTranslateEnabled", default: true)
 

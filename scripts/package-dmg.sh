@@ -8,16 +8,16 @@
 #   scripts/package-dmg.sh --open       # also launch the installed app (implies --install)
 #
 # Output:
-#   build/BoringNotch-Toolbox.dmg
+#   build/Islet.dmg
 #
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="$REPO_ROOT/build"
 DERIVED_DATA="$BUILD_DIR/DerivedData"
-APP_NAME="Boring Notch"
+APP_NAME="Islet"
 APP_PATH="$DERIVED_DATA/Build/Products/Release/$APP_NAME.app"
-DMG_PATH="$BUILD_DIR/BoringNotch-Toolbox.dmg"
+DMG_PATH="$BUILD_DIR/Islet.dmg"
 STAGE_DIR="$BUILD_DIR/dmg-staging"
 
 INSTALL=0
@@ -52,6 +52,23 @@ xcodebuild \
     build CODE_SIGNING_ALLOWED=NO | tail -3
 
 [[ -d "$APP_PATH" ]] || { echo "Build product not found at $APP_PATH" >&2; exit 1; }
+
+echo "==> Signing (keeps TCC permissions stable across installs)…"
+CERT="$(security find-identity -v -p codesigning 2>/dev/null | sed -n 's/.*"\(Apple Development:[^"]*\)".*/\1/p' | head -1)"
+if [[ -z "$CERT" ]]; then
+    echo "    No Apple Development identity found, falling back to ad-hoc signing."
+    CERT="-"
+fi
+for fw in "$APP_PATH/Contents/Frameworks/"*.framework; do
+    codesign --force --deep --sign "$CERT" --timestamp=none "$fw" >/dev/null
+done
+codesign --force --sign "$CERT" --timestamp=none \
+    --entitlements "$REPO_ROOT/BoringNotchXPCHelper/BoringNotchXPCHelper.entitlements" \
+    "$APP_PATH/Contents/XPCServices/BoringNotchXPCHelper.xpc" >/dev/null
+codesign --force --sign "$CERT" --timestamp=none \
+    --entitlements "$REPO_ROOT/boringNotch/boringNotch.entitlements" \
+    "$APP_PATH" >/dev/null
+codesign --verify --deep --strict "$APP_PATH"
 
 echo "==> Staging DMG contents…"
 rm -rf "$STAGE_DIR" "$DMG_PATH"

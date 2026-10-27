@@ -38,7 +38,7 @@ struct DynamicNotchApp: App {
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             CheckForUpdatesView(updater: updaterController.updater)
             Divider()
-            Button("Restart Boring Notch") {
+            Button("Restart Islet") {
                 ApplicationRelauncher.restart()
             }
             Button("Quit", role: .destructive) {
@@ -474,6 +474,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 guard Defaults[.toolboxSelectionTranslateEnabled] else { return }
                 TranslateService.shared.translateSelectionFromFrontApp()
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .pasteFromClipboardPin) {
+            Task { @MainActor in
+                PinnedShotWindow.pinFromClipboard()
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .toggleAllPins) {
+            Task { @MainActor in
+                PinnedShotWindow.toggleAllVisibility()
             }
         }
 

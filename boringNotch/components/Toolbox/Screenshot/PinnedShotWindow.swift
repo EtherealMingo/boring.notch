@@ -9,6 +9,7 @@ import AppKit
 
 final class PinnedShotWindow: NSPanel {
     private static var pinned: [PinnedShotWindow] = []
+    private static var allVisible = true
 
     static func pin(image: NSImage, at origin: NSPoint? = nil) {
         let maxSize = NSSize(width: 600, height: 600)
@@ -35,6 +36,24 @@ final class PinnedShotWindow: NSPanel {
 
         window.orderFrontRegardless()
         pinned.append(window)
+    }
+
+    /// Pin whatever image currently sits on the general pasteboard; no-op when
+    /// the clipboard holds no image.
+    static func pinFromClipboard() {
+        guard let image = NSImage(pasteboard: .general) else { return }
+        pin(image: image)
+    }
+
+    static func toggleAllVisibility() {
+        allVisible.toggle()
+        for window in pinned {
+            if allVisible {
+                window.orderFrontRegardless()
+            } else {
+                window.orderOut(nil)
+            }
+        }
     }
 }
 
